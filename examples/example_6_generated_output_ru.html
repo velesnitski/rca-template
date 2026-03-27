@@ -1,0 +1,130 @@
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>RCA Report — Отказ Redis после перезагрузки хоста</title>
+<style>
+body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.5; max-width: 780px; margin: 30px auto; color: #333; }
+h1 { font-size: 16pt; border-bottom: 2px solid #333; padding-bottom: 6px; }
+h2 { font-size: 13pt; margin-top: 24px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+h3 { font-size: 11pt; color: #444; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+th, td { border: 1px solid #999; padding: 5px 8px; text-align: left; font-size: 10pt; }
+th { background-color: #f0f0f0; }
+pre { background: #f5f5f5; padding: 10px; font-size: 9pt; white-space: pre-wrap; }
+blockquote { border-left: 3px solid #666; margin: 12px 0; padding: 6px 14px; background: #fafafa; }
+.crit { color: #d32f2f; font-weight: bold; }
+.high { color: #e65100; font-weight: bold; }
+.med { color: #f9a825; font-weight: bold; }
+.low { color: #388e3c; font-weight: bold; }
+ul { margin: 6px 0; }
+li { margin: 3px 0; }
+</style>
+</head>
+<body>
+
+<h1>RCA Report: Отказ контейнера Redis после плановой перезагрузки хоста</h1>
+<p>
+<strong>Дата:</strong> 20 января, 02:00 — 06:15<br>
+<strong>Серьёзность:</strong> <span class="high">HIGH</span><br>
+<strong>Воздействие:</strong> Все аутентифицированные пользователи не могли войти в систему, ~4 часа простоя<br>
+<strong>Системы:</strong> Redis (кэш сессий), API (аутентификация), все пользовательские сессии
+</p>
+
+<h2>1. Хронология</h2>
+
+<table>
+<tr><th>Время</th><th>Событие</th><th>Актор</th></tr>
+<tr><td>02:00</td><td>Плановая перезагрузка хоста для установки патча ядра</td><td>SysAdmin</td></tr>
+<tr><td>02:03</td><td>Контейнеры App, DB, Nginx перезапустились автоматически</td><td>Автоматика</td></tr>
+<tr><td>02:03</td><td>Контейнер Redis НЕ перезапустился — отсутствует restart policy</td><td>Автоматика</td></tr>
+<tr><td>02:03–06:05</td><td>4 часа тишины — никто не знает о проблеме</td><td>—</td></tr>
+<tr><td>06:05</td><td>Служба поддержки получает первые жалобы пользователей</td><td>Пользователи</td></tr>
+<tr><td>06:12</td><td>Дежурный SRE вызван, обнаруживает остановленный Redis</td><td>SRE</td></tr>
+<tr><td>06:15</td><td><code>docker compose up -d</code> — Redis запущен, сервис восстановлен</td><td>SRE</td></tr>
+</table>
+
+<h2>2. Корневая причина</h2>
+
+<p><strong>Причина A — Конфигурация:</strong> Отсутствие политики автоматического перезапуска (<code>restart: unless-stopped</code>) для контейнера Redis в docker-compose.yml</p>
+<p><strong>Причина B — Мониторинг:</strong> Полное отсутствие мониторинга состояния контейнеров и health check endpoints</p>
+
+<h2>3. Пять «Почему»</h2>
+
+<table>
+<tr><th>#</th><th>Вопрос</th><th>Ответ</th></tr>
+<tr><td>WHY 1</td><td>Почему пользователи не могли войти?</td><td>API возвращал 500 — нет подключения к Redis</td></tr>
+<tr><td>WHY 2</td><td>Почему Redis был недоступен?</td><td>Контейнер не перезапустился после рестарта хоста</td></tr>
+<tr><td>WHY 3</td><td>Почему контейнер не перезапустился?</td><td>Нет restart policy в docker-compose.yml</td></tr>
+<tr><td>WHY 4</td><td>Почему нет restart policy?</td><td>Конфигурация не проходила ревью на полноту</td></tr>
+<tr><td>WHY 5</td><td>Почему нет ревью?</td><td>Отсутствует стандарт production-readiness для контейнеров</td></tr>
+</table>
+
+<h2>4. Дерево отказов</h2>
+
+<pre>
+              [Пользователи не могут войти — 4 часа простоя]
+                                  |
+                 +----------------+----------------+
+                 |                                 |
+       [Redis не запустился]              [Никто не узнал 4 часа]
+                 |                                 |
+          +------+------+                 +--------+--------+
+          |             |                 |        |        |
+   [Нет restart   [Хост был        [Нет мони-  [Нет     [Нет проверки
+    policy]       перезагру-        торинга    health    после
+                  жен]              контей-   check]   перезагрузки]
+                                   неров]
+</pre>
+
+<h2>5. Матрица ответственности</h2>
+
+<table>
+<tr><th>Роль</th><th>Что ожидалось</th><th>Что произошло</th><th>Серьёзность</th></tr>
+<tr><td>DevOps / Автор docker-compose</td><td>Все контейнеры имеют restart policy</td><td>Redis без restart policy</td><td><span class="crit">ROOT CAUSE</span></td></tr>
+<tr><td>Команда платформы</td><td>Мониторинг контейнеров</td><td>Мониторинг отсутствует</td><td><span class="high">HIGH</span></td></tr>
+<tr><td>SysAdmin</td><td>Проверка сервисов после reboot</td><td>Нет post-reboot чеклиста</td><td><span class="med">MEDIUM</span></td></tr>
+<tr><td>Дежурный SRE</td><td>Обнаружить и устранить</td><td>Устранил за 3 мин, но не мог обнаружить без инструментов</td><td><span class="low">LOW</span></td></tr>
+</table>
+
+<h2>6. Оценка воздействия</h2>
+
+<table>
+<tr><th>Область</th><th>Серьёзность</th><th>Описание</th></tr>
+<tr><td>Аутентификация пользователей</td><td><span class="high">HIGH</span></td><td>100% аутентифицированных пользователей не могли войти в систему в течение ~4 часов</td></tr>
+<tr><td>Разрыв обнаружения</td><td><span class="crit">CRITICAL</span></td><td>4 часа 5 минут между возникновением проблемы и её обнаружением</td></tr>
+<tr><td>Доверие пользователей</td><td><span class="high">HIGH</span></td><td>Пользователи обнаружили проблему раньше команды — удар по репутации</td></tr>
+</table>
+
+<h2>7. Корректирующие действия</h2>
+
+<h3>Немедленные</h3>
+<table>
+<tr><th>#</th><th>Действие</th><th>Владелец</th><th>Срок</th></tr>
+<tr><td>1</td><td>Добавить <code>restart: unless-stopped</code> для всех контейнеров</td><td>DevOps lead</td><td>Сегодня</td></tr>
+<tr><td>2</td><td>Аудит docker-compose на всех серверах</td><td>DevOps lead</td><td>1–2 дня</td></tr>
+<tr><td>3</td><td>Добавить <code>/healthz</code> endpoint проверяющий Redis, DB</td><td>Backend lead</td><td>2–3 дня</td></tr>
+</table>
+
+<h3>Краткосрочные (1&ndash;2 недели)</h3>
+<table>
+<tr><th>#</th><th>Действие</th><th>Владелец</th><th>Срок</th></tr>
+<tr><td>4</td><td>Мониторинг контейнеров с алертом в Slack при state != running</td><td>DevOps lead</td><td>1 неделя</td></tr>
+<tr><td>5</td><td>Post-reboot чеклист: автопроверка что все контейнеры Up</td><td>SysAdmin</td><td>1 неделя</td></tr>
+<tr><td>6</td><td>Graceful degradation в API при недоступности Redis</td><td>Backend lead</td><td>2 недели</td></tr>
+</table>
+
+<h3>Долгосрочные</h3>
+<table>
+<tr><th>#</th><th>Действие</th><th>Владелец</th><th>Срок</th></tr>
+<tr><td>7</td><td>Production-readiness чеклист для всех сервисов</td><td>Platform lead</td><td>1 месяц</td></tr>
+<tr><td>8</td><td>Synthetic monitoring — периодический тестовый логин</td><td>SRE lead</td><td>1 месяц</td></tr>
+</table>
+
+<h2>8. Ключевой вывод</h2>
+
+<blockquote>
+<p><strong>Разрыв обнаружения опаснее самой поломки.</strong> Техническое исправление заняло 3 минуты, но отсутствие мониторинга превратило его в 4-часовой простой. Обвинение дежурного SRE не только несправедливо, но и опасно: оно создаёт иллюзию решения проблемы, не затрагивая ни одной из системных причин. У SRE не было инструментов обнаружения — любой другой инженер в тех же условиях получил бы тот же результат.</p>
+</blockquote>
+
+</body>
+</html>
