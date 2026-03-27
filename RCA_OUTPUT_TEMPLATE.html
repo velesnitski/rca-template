@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RCA Report — [INCIDENT TITLE]</title>
+<style>
+body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.5; max-width: 780px; margin: 30px auto; color: #333; }
+h1 { font-size: 16pt; border-bottom: 2px solid #333; padding-bottom: 6px; }
+h2 { font-size: 13pt; margin-top: 24px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+h3 { font-size: 11pt; color: #444; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+th, td { border: 1px solid #999; padding: 5px 8px; text-align: left; font-size: 10pt; }
+th { background-color: #f0f0f0; }
+pre { background: #f5f5f5; padding: 10px; font-size: 9pt; white-space: pre-wrap; }
+blockquote { border-left: 3px solid #666; margin: 12px 0; padding: 6px 14px; background: #fafafa; }
+.crit { color: #d32f2f; font-weight: bold; }
+.high { color: #e65100; font-weight: bold; }
+.med { color: #f9a825; font-weight: bold; }
+.low { color: #388e3c; font-weight: bold; }
+ul { margin: 6px 0; }
+li { margin: 3px 0; }
+</style>
+</head>
+<body>
+
+<h1>RCA Report: [INCIDENT TITLE]</h1>
+<p>
+<strong>Date:</strong> [incident date range]<br>
+<strong>Severity:</strong> <span class="crit">[CRITICAL/HIGH/MEDIUM/LOW]</span><br>
+<strong>Impact:</strong> [business impact summary]<br>
+<strong>Systems:</strong> [affected systems]
+</p>
+
+<h2>1. Timeline</h2>
+
+<table>
+<tr><th>Timestamp</th><th>Event</th><th>Actor</th></tr>
+<tr><td>[date/time]</td><td>[event description]</td><td>[role]</td></tr>
+<!-- Add rows as needed -->
+</table>
+
+<h2>2. Root Cause</h2>
+
+<p><strong>Cause A &mdash; [Category]:</strong> [Description]</p>
+<p><strong>Cause B &mdash; [Category]:</strong> [Description]</p>
+<!-- Add causes as needed -->
+
+<h2>3. Five Whys</h2>
+
+<table>
+<tr><th>#</th><th>Question</th><th>Answer</th></tr>
+<tr><td>WHY 1</td><td>[question]</td><td>[answer]</td></tr>
+<tr><td>WHY 2</td><td>[question]</td><td>[answer]</td></tr>
+<tr><td>WHY 3</td><td>[question]</td><td>[answer]</td></tr>
+<tr><td>WHY 4</td><td>[question]</td><td>[answer]</td></tr>
+<tr><td>WHY 5</td><td>[question]</td><td>[answer]</td></tr>
+</table>
+
+<h2>4. Fault Tree</h2>
+
+<pre>
+                [INCIDENT OUTCOME]
+                       |
+              +--------+--------+
+              |                 |
+      [Factor Group A]   [Factor Group B]
+              |                 |
+         +----+----+       +---+---+
+         |         |       |       |
+    [Cause 1] [Cause 2] [Cause 3] [Cause 4]
+</pre>
+
+<h2>5. Responsibility Matrix</h2>
+
+<table>
+<tr><th>Role</th><th>What Was Expected</th><th>What Happened</th><th>Severity</th></tr>
+<tr><td>[role]</td><td>[expected]</td><td>[actual]</td><td><span class="crit">ROOT CAUSE</span></td></tr>
+<tr><td>[role]</td><td>[expected]</td><td>[actual]</td><td><span class="high">HIGH</span></td></tr>
+<tr><td>[role]</td><td>[expected]</td><td>[actual]</td><td><span class="med">MEDIUM</span></td></tr>
+<tr><td>[role]</td><td>[expected]</td><td>[actual]</td><td><span class="low">LOW</span></td></tr>
+</table>
+
+<h2>6. Impact Assessment</h2>
+
+<table>
+<tr><th>Area</th><th>Severity</th><th>Description</th></tr>
+<tr><td>[area]</td><td><span class="crit">[level]</span></td><td>[description]</td></tr>
+<!-- Add rows as needed -->
+</table>
+
+<h2>7. Corrective Actions</h2>
+
+<h3>Immediate</h3>
+<table>
+<tr><th>#</th><th>Action</th><th>Owner</th><th>Deadline</th></tr>
+<tr><td>1</td><td>[action]</td><td>[owner]</td><td>[date]</td></tr>
+</table>
+
+<h3>Short-term (1&ndash;2 weeks)</h3>
+<table>
+<tr><th>#</th><th>Action</th><th>Owner</th><th>Deadline</th></tr>
+<tr><td>1</td><td>[action]</td><td>[owner]</td><td>[date]</td></tr>
+</table>
+
+<h3>Long-term</h3>
+<table>
+<tr><th>#</th><th>Action</th><th>Owner</th><th>Deadline</th></tr>
+<tr><td>1</td><td>[action]</td><td>[owner]</td><td>[date]</td></tr>
+</table>
+
+<h2>8. Key Insight</h2>
+
+<blockquote>
+<p>[2-3 sentence summary of the most important systemic lesson from this incident]</p>
+</blockquote>
+
+</body>
+</html>
