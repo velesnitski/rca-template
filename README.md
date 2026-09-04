@@ -64,13 +64,17 @@ See [`examples/example_4_quick_usage.md`](examples/example_4_quick_usage.md) for
 ```
 .
 ├── README.md                  # This file
+├── CHANGELOG.md               # What changed between versions, and why
 ├── INCIDENT_INPUT.md          # Fill this with your incident data
 ├── RCA_TEMPLATE.md            # The RCA framework and methodology
 ├── RCA_OUTPUT_TEMPLATE.html   # HTML template for Google Docs export
 ├── examples/
-│   ├── example_1_db_outage.md         # Example: Database container didn't restart
-│   ├── example_2_env_exposure.md      # Example: Dev environment exposed publicly
-│   └── example_4_quick_usage.md      # Quick usage patterns with Claude Code
+│   ├── example_1_db_outage.md             # Example: Database container didn't restart
+│   ├── example_2_env_exposure.md          # Example: Dev environment exposed publicly
+│   ├── example_3_full_report.md           # Example: complete RCA end to end
+│   ├── example_4_quick_usage.md           # Quick usage patterns with Claude Code
+│   ├── example_5_generated_rca_ru.md      # Generated RCA in Russian, from a minimal input
+│   └── example_6_generated_output_ru.html # Generated HTML output in Russian (Google Docs ready)
 └── prompts/
     ├── rca_analysis.md        # Main RCA prompt for AI
     ├── validate_process.md    # Prompt to validate an existing process/runbook
@@ -124,12 +128,15 @@ The quality of the RCA depends entirely on the quality of input data. Here's wha
 
 This template combines proven techniques:
 
-1. **Timeline Reconstruction** — what happened, in what order
-2. **5 Whys Analysis** — drilling from symptom to root cause
-3. **Fault Tree** — visual mapping of contributing factors
+1. **Timeline Reconstruction** — what happened, in what order, and from which source
+2. **5 Whys Analysis** — two chains: why it happened, and why it went unnoticed
+3. **Fault Tree** — visual mapping of contributing factors, plus the cheapest removable leaf
 4. **Responsibility Matrix** — role-based accountability (not blame)
-5. **Swiss Cheese Model** — identifying which defensive layers failed
+5. **Swiss Cheese Model** — which defensive layers failed, with detection split into its links
 6. **Corrective Actions** — prioritized: immediate / short-term / long-term
+7. **Open Questions** — what an INITIAL RCA does not know yet, and who is finding out
+
+See [`CHANGELOG.md`](CHANGELOG.md) for what changed between versions and why.
 
 ## AI Best Practices for RCA
 
