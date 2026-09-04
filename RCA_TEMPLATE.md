@@ -9,7 +9,9 @@ Use this template to structure your Root Cause Analysis. Each section serves a s
 | Field | Value |
 |-------|-------|
 | **Title** | <!-- Short description --> |
+| **Status** | INITIAL / FINAL <!-- An initial RCA is expected within 48h and may carry open questions — list them in the Appendix. Promote to FINAL only when none remain. --> |
 | **Date** | <!-- Incident date range --> |
+| **Time reference** | <!-- e.g. "UTC. Chat timestamps are shown in local time (UTC+2)." See the Timeline note on mixed sources. --> |
 | **Severity** | CRITICAL / HIGH / MEDIUM / LOW |
 | **Impact** | <!-- Business impact in measurable terms --> |
 | **Detection Gap** | <!-- Time between incident start and detection --> |
@@ -25,12 +27,17 @@ Reconstruct the chronological sequence of events. Include:
 - When each person/system became aware
 - What actions were taken and when
 - When the incident was resolved
+- **Controls that fired before anyone reacted** — a scan that ran, an alert that triggered, a report that was generated but not read. These rows are where the detection gap gets explained.
 
-| Timestamp | Event | Actor | Category |
-|-----------|-------|-------|----------|
-| | | | Trigger / Detection / Action / Resolution |
+| Timestamp | Event | Actor | Category | Source |
+|-----------|-------|-------|----------|--------|
+| | | | Trigger / Detection / Action / Resolution | <!-- chat, ticket, log, tool output --> |
 
-**Key metric:** Time between trigger and detection = detection gap. This is often the most important number in the RCA.
+**Attribution.** The Actor is who *found* or *did* the thing — not who reported it, asked for it, or was informed. "Engineer B found host X infected (Lead A informed, on the call)" is right; crediting the lead is wrong, and it is the first thing the people who were there will correct.
+
+**Mixed time sources.** Tool output is usually UTC; chat and tickets usually show local time; a host's own clock may be neither. State the reference in the summary, and when sources disagree compute the key intervals (detection gap, time to containment) from two anchors taken from the *same* source. A `Z` suffix on a log timestamp is a claim, not a guarantee — verify it against an epoch value before trusting it.
+
+**Key metric:** Time between trigger and detection = detection gap. This is often the most important number in the RCA. If a control produced evidence before a human acted on it, also record **control-to-human time** — the interval between the finding existing and someone reading it. It is frequently the largest single component of the gap.
 
 ---
 
@@ -74,6 +81,15 @@ WHY 5: Why did [answer from WHY 4] happen?
   -> Because [answer] <-- This is typically the root cause
 ```
 
+**Two chains, not one.** Most incidents worth an RCA have two independent causal paths: *why it happened* and *why it took so long to notice*. Drilling only the first yields a root cause about the trigger and leaves the detection gap — often the larger cost — unexplained. When the detection gap is material, run a second chain:
+
+```
+CHAIN A — why it became possible:   symptom → ... → the missing process
+CHAIN B — why it went unnoticed:    delay   → ... → why the control that saw it never reached a human
+```
+
+Chain B almost always terminates in one of five links: the control did not exist · existed but did not fire · fired but classified the finding below the alert threshold · alerted but nobody owned triage · was triaged but not acted on. Name the exact link — each one has a different fix, and "add more monitoring" is the wrong answer to three of the five.
+
 ### 3.4 Fault Tree
 
 Visual representation of how contributing factors combined to cause the incident:
@@ -91,6 +107,8 @@ Visual representation of how contributing factors combined to cause the incident
 ```
 
 **Key insight:** If removing ANY branch would have prevented the incident, note it. This identifies the most effective corrective actions.
+
+**Cheapest removable leaf.** Among the leaves whose removal *alone* would have prevented the incident, name the one that costs least to remove. It is frequently not the obvious fix — enabling a setting that already exists, closing one port, or raising one severity level can block the same path as a multi-week upgrade. Put that leaf first in the Immediate actions.
 
 ---
 
@@ -116,6 +134,7 @@ If management has a pre-existing narrative about who is at fault, evaluate it ag
 2. **Would a different person in the same role have done better?** (if not — it's a systemic issue)
 3. **Does the proposed action prevent recurrence?** (firing someone doesn't fix missing monitoring)
 4. **Is the proposed accountability proportional?** (match severity to actual contribution)
+5. **Was the gap already being closed before the incident — and by whom?** Check the timeline for work that predates the trigger: a control deployed days earlier, systems recently brought back under monitoring, a debt item already in progress. If the team nominally "at fault" is the one that had started fixing it, accountability that punishes them punishes the pace of repair, not the cause.
 
 ---
 
@@ -129,6 +148,8 @@ If management has a pre-existing narrative about who is at fault, evaluate it ag
 | Security | | | |
 | Compliance | | | |
 | Team/Morale | | | |
+
+**Disputed values.** When two participants assess the same impact differently ("data was taken" vs "no evidence of exfiltration"), do not record both as findings. Mark the cell DISPUTED, state each position with its evidence, and add it to Open Questions. A FINAL RCA carries no disputed values — resolve them, or state explicitly why they cannot be resolved.
 
 ---
 
@@ -160,6 +181,8 @@ Each action should be:
 - [ ] **Time-bound** — has a deadline
 - [ ] **Preventive** — addresses root cause, not just this instance
 - [ ] **Verifiable** — you can confirm it was done
+- [ ] **Tunes before it adds** — if an existing control saw the problem, fixing its threshold, routing or ownership comes before buying a new tool
+- [ ] **Cheapest leaf first** — the lowest-cost change that alone would have blocked the incident is in the Immediate table
 
 ---
 
@@ -190,14 +213,31 @@ Which defensive layers exist and which failed?
 
 | Layer | Exists? | Worked? | Notes |
 |-------|---------|---------|-------|
+| Asset inventory / lifecycle tracking | | | <!-- can you list what you run, and its support status? --> |
 | Code review | | | |
 | Automated testing | | | |
 | Staging environment | | | |
-| Deploy checklist | | | |
-| Monitoring/Alerting | | | |
+| Deploy checklist / hardening baseline | | | |
+| Network segmentation / exposure control | | | |
+| Authentication hardening (MFA, key scoping) | | | |
+| Detection — a control observes the condition | | | |
+| Classification — the finding gets a severity that reflects its risk | | | |
+| Delivery — the finding reaches a human (alert, ticket, report) | | | |
+| Triage — someone owns reading it, with an SLA | | | |
 | Health checks | | | |
+| Backup isolation / encryption | | | |
 | Manual verification | | | |
-| Incident response process | | | |
+| Incident response playbook | | | |
+
+Detection is split into four rows on purpose. "Monitoring failed" hides which link broke, and each link has a different fix: a control that fired but rated the finding informational is a **classification** failure; one that produced a report nobody read is a **triage** failure. Neither is fixed by adding another scanner.
+
+### Open Questions / Unverified Claims
+
+Required while Status is INITIAL. Each row names what is unknown, what evidence would settle it, and who is getting that evidence. Empty this table before promoting the RCA to FINAL.
+
+| # | Question | Evidence that would settle it | Owner |
+|---|----------|-------------------------------|-------|
+| | | | |
 
 ### Related Incidents
 <!-- Links or references to similar past incidents -->

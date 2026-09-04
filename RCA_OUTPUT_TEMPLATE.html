@@ -25,8 +25,11 @@ li { margin: 3px 0; }
 
 <h1>RCA Report: [INCIDENT TITLE]</h1>
 <p>
+<strong>Status:</strong> [INITIAL / FINAL]<br>
 <strong>Date:</strong> [incident date range]<br>
+<strong>Time reference:</strong> [e.g. UTC; chat timestamps shown in local time]<br>
 <strong>Severity:</strong> <span class="crit">[CRITICAL/HIGH/MEDIUM/LOW]</span><br>
+<strong>Detection gap:</strong> [time from trigger to detection]<br>
 <strong>Impact:</strong> [business impact summary]<br>
 <strong>Systems:</strong> [affected systems]
 </p>
@@ -56,6 +59,16 @@ li { margin: 3px 0; }
 <tr><td>WHY 5</td><td>[question]</td><td>[answer]</td></tr>
 </table>
 
+<h3>Chain B &mdash; why it went unnoticed <span style="font-weight:normal;color:#666">(include when the detection gap is material)</span></h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Answer</th></tr>
+<tr><td>WHY 1</td><td>[question]</td><td>[answer]</td></tr>
+<tr><td>WHY 2</td><td>[question]</td><td>[answer]</td></tr>
+<tr><td>WHY 3</td><td>[question]</td><td>[answer]</td></tr>
+<tr><td>WHY 4</td><td>[question]</td><td>[answer]</td></tr>
+<tr><td>WHY 5</td><td>[question]</td><td>[answer — which link failed: no control / did not fire / rated below threshold / reached nobody / not acted on]</td></tr>
+</table>
+
 <h2>4. Fault Tree</h2>
 
 <pre>
@@ -69,6 +82,8 @@ li { margin: 3px 0; }
          |         |       |       |
     [Cause 1] [Cause 2] [Cause 3] [Cause 4]
 </pre>
+
+<p><strong>Cheapest removable leaf:</strong> [the lowest-cost change that alone would have blocked the incident &mdash; this belongs first in Immediate actions]</p>
 
 <h2>5. Responsibility Matrix</h2>
 
@@ -108,11 +123,35 @@ li { margin: 3px 0; }
 <tr><td>1</td><td>[action]</td><td>[owner]</td><td>[date]</td></tr>
 </table>
 
-<h2>8. Key Insight</h2>
+<h2>8. Lessons Learned</h2>
+
+<h3>What went well</h3>
+<ul>
+<li>[what worked during the response]</li>
+</ul>
+
+<h3>What went poorly</h3>
+<ul>
+<li>[what failed or was slower than expected]</li>
+</ul>
+
+<h3>What was lucky</h3>
+<ul>
+<li>[what could have made this worse but didn't &mdash; and will not hold next time]</li>
+</ul>
+
+<h2>9. Key Insight</h2>
 
 <blockquote>
 <p>[2-3 sentence summary of the most important systemic lesson from this incident]</p>
 </blockquote>
+
+<h2>10. Open Questions <span style="font-weight:normal;color:#666">(required while Status is INITIAL)</span></h2>
+
+<table>
+<tr><th>#</th><th>Question</th><th>Evidence that would settle it</th><th>Owner</th></tr>
+<tr><td>1</td><td>[what is unknown or disputed]</td><td>[the measurement or artifact that resolves it]</td><td>[role]</td></tr>
+</table>
 
 </body>
 </html>

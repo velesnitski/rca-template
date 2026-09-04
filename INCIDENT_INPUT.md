@@ -42,6 +42,9 @@ Fill in what you know. Approximate times are fine.
 **Detection gap:**
 <!-- How long between start and detection? -->
 
+**Time reference of each source:**
+<!-- e.g. "tool logs: UTC · chat: local UTC+2 · host clocks: unknown". Needed to compute intervals correctly — mixed sources are the usual case. -->
+
 ---
 
 ## What Changed
@@ -107,6 +110,21 @@ Format:
 
 **Existing monitoring in place:**
 <!-- What monitoring/alerting exists for this system? -->
+
+**Did any control see the problem BEFORE a human did?**
+<!-- A scan, report, or alert that fired earlier than the detection time above.
+     When did it fire, what severity did it assign, and when did a human first read it?
+     This is usually where the detection gap is explained. -->
+
+---
+
+## Disputed Facts
+
+Where participants disagree on what happened or how bad it was, record each position with its evidence rather than choosing one. The analysis will keep these as open questions until evidence settles them.
+
+| Question | Position A (evidence) | Position B (evidence) | What would settle it |
+|----------|----------------------|----------------------|----------------------|
+| <!-- e.g. "Was data exfiltrated?" --> | | | <!-- e.g. "egress graph for the period" --> |
 
 ---
 
